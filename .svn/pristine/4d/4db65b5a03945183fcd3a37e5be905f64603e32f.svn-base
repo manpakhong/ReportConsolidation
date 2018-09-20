@@ -1,0 +1,35 @@
+package com.littlecloud.rptconsolidation.threads.consumers.impls;
+
+import java.util.concurrent.BlockingQueue;
+
+import org.jboss.logging.Logger;
+
+import com.littlecloud.ac.messagehandler.queue.threads.CaptivePortalMessageConsumerThread;
+import com.littlecloud.rptconsolidation.eos.ConsolidateJob;
+import com.littlecloud.rptconsolidation.threads.consumers.ConsolidateJobsConsumerThread;
+
+public class ConsolidateJobsConsumerThreadImpl implements Runnable, ConsolidateJobsConsumerThread <ConsolidateJob>{
+	private static final Logger log = Logger.getLogger(CaptivePortalMessageConsumerThread.class);
+	protected static BlockingQueue<ConsolidateJob> queue;
+	public ConsolidateJobsConsumerThreadImpl(BlockingQueue<ConsolidateJob> q) {
+		ConsolidateJobsConsumerThreadImpl.queue = q;
+	}
+	public void run() {
+		try {
+			while (ConsolidateJobsConsumerThreadImpl.queue.size() > 0) {
+				consume(ConsolidateJobsConsumerThreadImpl.queue.poll());
+			}
+		} catch (Exception e) {
+			log.error("ConsolidateJobsConsumerThread.run() - ", e);
+		}
+	}
+	protected void consume(ConsolidateJob consolidateJob) {
+		try{
+			if (consolidateJob != null ){
+				log.info("ConsolidateJobsConsumerThreadImpl.run() - poll:" + consolidateJob);
+			}
+		} catch (Exception e){
+			log.error("ConsolidateJobsConsumerThread.consume() - ", e);
+		}
+	}
+}

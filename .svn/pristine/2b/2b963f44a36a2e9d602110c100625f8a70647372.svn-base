@@ -1,0 +1,18 @@
+package com.littlecloud.rptconsolidation.test.threads.executors;
+
+import com.littlecloud.rptconsolidation.eos.ConsolidateJob;
+import com.littlecloud.rptconsolidation.factories.ExecutorsFactoryUnitTest;
+import com.littlecloud.rptconsolidation.threads.executors.RptConsolidationExecutor;
+
+public class Test {
+
+	public static void main(String[] args) {
+		RptConsolidationExecutor<ConsolidateJob> consolidateJobsProviderExecutor = ExecutorsFactoryUnitTest.getConsolidateJobsProviderExecutorUnitTestInstance();
+//		RptConsolidationExecutor<ConsolidateJob> consolidateJobsConsumerExecutor = ExecutorsFactoryUnitTest.getConsolidateJobsConsumerExecutorUnitTestInstance();
+		Thread providerThread = new Thread(consolidateJobsProviderExecutor);
+		providerThread.start();
+//		Thread consumerThread = new Thread(consolidateJobsConsumerExecutor);
+//		consumerThread.start();
+	}
+
+}

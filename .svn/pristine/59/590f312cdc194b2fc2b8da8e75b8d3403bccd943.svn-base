@@ -1,0 +1,33 @@
+package com.littlecloud.rptconsolidation.threads.executors.impls;
+
+import java.util.concurrent.BlockingQueue;
+
+import org.jboss.logging.Logger;
+
+import com.littlecloud.rptconsolidation.eos.ConsolidateJob;
+import com.littlecloud.rptconsolidation.threads.providers.impls.ConsolidateJobsProviderThreadImpl;
+import com.littlecloud.rptconsolidation.threads.threads.providers.impls.ConsolidateJobsProviderThreadImplUnitTest;
+
+public class ConsolidateJobsProviderExecutorImplUnitTest extends ConsolidateJobsProviderExecutorImpl {
+	private static final Logger log = Logger.getLogger(ConsolidateJobsProviderExecutorImplUnitTest.class);
+	public ConsolidateJobsProviderExecutorImplUnitTest(BlockingQueue<ConsolidateJob> q) {
+		super(q);
+	}
+	@Override
+	public void run() {
+		try{
+			while (runningEnabled){
+				if (ConsolidateJobsProviderExecutorImpl.q != null){
+					ConsolidateJobsProviderThreadImpl providerThread = new ConsolidateJobsProviderThreadImplUnitTest(ConsolidateJobsProviderExecutorImpl.q);
+					execute(providerThread);
+				}
+				if (log.isDebugEnabled()){
+					log.debugf("ConsolidateJobsExecutor.run(), ConsolidateJobsExecutor.q: %s", ConsolidateJobsProviderExecutorImpl.q);					
+				}
+				Thread.sleep(bundlesDto.getThreadSleep());
+			}
+		} catch (Exception e){
+			log.error("ConsolidateJobsExecutor.run() - ", e );
+		}
+	}
+}

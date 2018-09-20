@@ -1,0 +1,30 @@
+package com.littlecloud.rptconsolidation.factories.impls;
+
+import java.sql.Connection;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.sql.DataSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.littlecloud.rptconsolidation.factories.RptConsolidationConnectionFactory;
+
+public class CommonBsDbConnFactoryImpl implements RptConsolidationConnectionFactory {
+	private static final Logger log = LoggerFactory.getLogger(CommonBsDbConnFactoryImpl.class);
+	private static Connection conn;
+	public Connection getConnectionInstance(){
+		try{
+			if (conn == null){
+				Context initContext = new InitialContext();
+				Context envContext  = (Context)initContext.lookup("java:/comp/env");
+				DataSource ds = (DataSource)envContext.lookup("jdbc/mysql_bs_common");
+				conn = ds.getConnection();
+			}
+		} catch (Exception e){
+			log.debug("CommonBsDbConnFactoryImpl.getConnectionInstance() - ", e);
+		}
+		return conn;
+	}
+}

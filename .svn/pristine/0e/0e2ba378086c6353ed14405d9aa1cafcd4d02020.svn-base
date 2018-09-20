@@ -1,0 +1,12 @@
+db.bscommon.host=bs1db.dev.pepwave.com
+db.bscommon.user=root
+db.bscommon.password=pepl2302
+db.bscommon.schema=bs_common_db
+db.bscommon.port=3306
+
+com.littlecloud.rptconsolidation.factories.CONSUMER_MAX_THREAD_POOL=2
+com.littlecloud.rptconsolidation.factories.CONSUMER_THREAD_SLEEP=10000
+com.littlecloud.rptconsolidation.factories.PROVIDER_MAX_THREAD_POOL=1
+com.littlecloud.rptconsolidation.factories.PROVIDER_THREAD_SLEEP=10000
+
+com.littlecloud.rptconsolidation.factories.BLOCK_QUEUE_SIZE=100

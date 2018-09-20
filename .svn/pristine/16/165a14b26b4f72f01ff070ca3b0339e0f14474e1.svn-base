@@ -1,0 +1,25 @@
+url test samples:
+=================
+
+/getAllConsolidateJob
+
+/doDeviceDailyUsagesConsolidation
+http://localhost:8080/rptconsolidation/rest/consolidateJobWs/doDeviceDailyUsagesConsolidation?dateFrom=20141126&dateTo=20141126&orgId=riMA5x&networkId=75
+
+/doDeviceMonthlyUsagesConsolidation
+http://localhost:8080/rptconsolidation/rest/consolidateJobWs/doDeviceMonthlyUsagesConsolidation?dateFrom=20141126&dateTo=20141126&orgId=riMA5x
+
+/doDeviceDpiDailyUsagesConsolidation
+http://localhost:8080/rptconsolidation/rest/consolidateJobWs/doDeviceSsidDailyUsagesConsolidation?dateFrom=20141126&dateTo=20141126&orgId=riMA5x&networkId=75
+
+/doDeviceDpiMonthlyUsagesConsolidation
+http://localhost:8080/rptconsolidation/rest/consolidateJobWs/doDeviceDpiDailyUsagesConsolidation?dateFrom=20140109&dateTo=20140109&orgId=riMA5x&networkId=19
+
+/doDeviceSsidDailyUsagesConsolidation
+http://localhost:8080/rptconsolidation/rest/consolidateJobWs/doDeviceSsidDailyUsagesConsolidation?dateFrom=20140109&dateTo=20140109&orgId=riMA5x&networkId=19
+
+/doCaptivePortalDailyUsagesConsolidation
+http://localhost:8080/rptconsolidation/rest/consolidateJobWs/doCaptivePortalDailyUsagesConsolidation?dateFrom=20140109&dateTo=20140109&orgId=riMA5x&networkId=19
+
+/doCaptivePortalUserDailyUsagesConsolidation
+http://localhost:8080/rptconsolidation/rest/consolidateJobWs/doCaptivePortalUserDailyUsagesConsolidation?dateFrom=20140109&dateTo=20140109&orgId=riMA5x&networkId=19

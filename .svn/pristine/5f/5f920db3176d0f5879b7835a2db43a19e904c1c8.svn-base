@@ -1,0 +1,35 @@
+package com.littlecloud.rptconsolidation.factories.impls;
+
+import java.util.Properties;
+
+import com.littlecloud.rptconsolidation.eos.ControllerBundles;
+import com.littlecloud.rptconsolidation.factories.BundlesFactory;
+import com.littlecloud.rptconsolidation.utils.PropertiesUtils;
+
+public class BundlesFactoryControllerImpl implements BundlesFactory<ControllerBundles> {
+	private static final String PROPERTIES_JAVA_RUNTIME = "system.properties";
+	private static final String PROPERTIES_SYSTEM_RESOURCE = "system.properties";
+	private static Properties properties;
+	private static ControllerBundles bundleDto;
+	private void loadInstanceOfSystemProperties(){
+		if (properties == null){
+			properties = PropertiesUtils.readPropertiesByJavaRuntimeVariable(PROPERTIES_JAVA_RUNTIME);
+		}
+		if (properties == null){
+			properties = PropertiesUtils.readPropertiesBySystemResource(PROPERTIES_SYSTEM_RESOURCE);
+		}
+	}
+	@Override
+	public ControllerBundles getBundleDto() {
+		if (bundleDto == null){
+			loadInstanceOfSystemProperties();
+			if (properties != null){
+				bundleDto = new ControllerBundles();
+				bundleDto.setMaxThreadPool(properties.getProperty("com.littlecloud.rptconsolidation.factories.MAX_THREAD_POOL", "5"));
+				bundleDto.setThreadSleep(properties.getProperty("com.littlecloud.rptconsolidation.factories.THREAD_SLEEP", "1000"));	
+			}
+		}
+		
+		return bundleDto;
+	}
+}

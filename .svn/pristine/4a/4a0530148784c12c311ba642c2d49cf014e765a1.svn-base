@@ -1,0 +1,121 @@
+package com.littlecloud.rptconsolidation.helpers;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.littlecloud.rptconsolidation.eos.ConsolidateJob;
+import com.littlecloud.rptconsolidation.services.ConsolidateJobsMgr;
+import com.littlecloud.rptconsolidation.services.impls.ConsolidateJobsMgrImpl;
+import com.littlecloud.utils.CalendarUtils;
+
+public class ConsolidateJobsHelper {
+	private static final Logger log = LoggerFactory.getLogger(ConsolidateJobsHelper.class);
+	public static final String PARAM_DATE_FORMAT = "yyyyMMdd";
+	public static final String PARAM_DATETIME_FORMAT = "yyyyMMddTHHmmss";
+	private ConsolidateJob consolidateJob;
+	private String orgId;
+	private String jobName;
+	private String server;
+	private ConsolidateJobsMgr consolidateJobsMgr;
+	
+	
+	public ConsolidateJobsHelper(ConsolidateJob consolidateJob){
+		this.consolidateJob = consolidateJob;
+		init();
+	}
+	
+	public ConsolidateJobsHelper(String orgId, String jobName, String server){
+		this.orgId = orgId;
+		this.jobName = jobName;
+		this.server = server;
+		init();
+	}
+	private void init(){
+		try{
+			consolidateJobsMgr = new ConsolidateJobsMgrImpl();
+			
+			if (consolidateJob == null){
+				Calendar cal = CalendarUtils.getUtcCalendarToday();
+				consolidateJob = new ConsolidateJob();
+				consolidateJob.setCreatedDate(cal.getTime());
+				
+				consolidateJob.setServer(server);
+				consolidateJob.setOrgId(orgId);
+				consolidateJob.setJobName(jobName);
+				consolidateJob.setActive(true);
+				consolidateJob.setType(ConsolidateJob.TYPE_WEBSERVICE);
+			}
+			
+		} catch (Exception e){
+			log.error("ConsolidateJobsWsHelper.init() - Exception: ", e);
+		}
+	}
+	
+	public void markDoDateFrom(Calendar calFrom){
+		consolidateJob.setDoDateFrom(calFrom.getTime());
+	}
+	public void markDoDateTo(Calendar calTo){
+		consolidateJob.setDoDateTo(calTo.getTime());
+	}
+	
+	public void markProcessStartTime(){
+		Calendar cal = CalendarUtils.getUtcCalendarToday();
+		consolidateJob.setStartDateTime(cal.getTime());
+	}
+	
+	public void markProcessEndTime(){
+		Calendar cal = CalendarUtils.getUtcCalendarToday();
+		consolidateJob.setEndDateTime(cal.getTime());
+		consolidateJob.setUpdatedDate(cal.getTime());
+		consolidateJob.setStatus(ConsolidateJob.STATUS_FINISHED);
+	}
+	
+	public void markNoOfRecordsProcessed(Integer noOfRecordsProcessed){
+		consolidateJob.setNoOfRecords(noOfRecordsProcessed);
+	}
+	
+	public void saveConsolidateJob(){
+		try{
+			if (consolidateJob != null && consolidateJob.getId() != null){
+				int noOfUpdatedRecords = consolidateJobsMgr.updateConsolidateJob(consolidateJob);
+				if (noOfUpdatedRecords <= 0){
+					log.warn("ConsolidateJobsWsHelper.saveConsolidateJob() - noOfUpdatedRecords: " + noOfUpdatedRecords);
+				}
+			} else {
+				int lastGeneratedId = consolidateJobsMgr.insertConsolidateJob(consolidateJob);
+				if (lastGeneratedId <= 0){
+					log.warn("ConsolidateJobsWsHelper.saveConsolidateJob() - lastGeneratedId: " + lastGeneratedId);
+				}
+			}
+
+		} catch (Exception e){
+			log.error("ConsolidateJobsWsHelper.saveConsolidateJob() - Exception: ", e);
+		}
+	}
+	
+	public static Calendar convertParamDateString2Calendar(String dateString){
+		Calendar cal = CalendarUtils.getUtcCalendarToday();
+		try{
+			Date date = convertParamDateString2Date(dateString);
+			cal.setTime(date);
+		} catch (Exception e){
+			log.error("ConsolidateJobsWsHelper.convertParamDateString2Calendar() - Exception:", e);
+		}
+		return cal;
+	}
+	private static Date convertParamDateString2Date(String dateString){
+		Date date = null;
+		try{
+			SimpleDateFormat sdf = new SimpleDateFormat(PARAM_DATE_FORMAT);
+			date = sdf.parse(dateString);
+		} catch (Exception e){
+			log.error("ConsolidateJobsWsHelper.convertParamDateString2Date() - Exception:", e);
+		}
+		return date;
+	}
+	
+}

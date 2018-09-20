@@ -1,0 +1,189 @@
+package com.littlecloud.rptconsolidation.utils;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class CalendarUtils {
+	private static final Logger log = LoggerFactory.getLogger(CommonUtils.class);
+	public static Date convertCalendar2TimeZoneDate(Calendar calendar, TimeZone toTimeZone) {
+		convertCalendar2TimeZoneCalendar(calendar, toTimeZone);
+		return calendar.getTime();
+	}
+
+	public static void recomputeCalendar(Calendar cal){
+		String refreshCal = "refreshCal - M: " + cal.get(Calendar.DAY_OF_MONTH) + "H:" + cal.get(Calendar.HOUR_OF_DAY);
+		 if (log.isDebugEnabled()){
+			 log.debug("CalendarUtils.convertCalendar2TimeZoneCalendar(), after recompute: " + refreshCal);
+		 }
+	}
+	 public static void convertCalendar2TimeZoneCalendar(Calendar cal,TimeZone toTimeZone){
+		// !!!!!! the following line must be existed to trigger recomputing after setting time zone
+		String beforeConvert = "before - M: " + cal.get(Calendar.DAY_OF_MONTH) + "H:" + cal.get(Calendar.HOUR_OF_DAY);
+		 if (log.isDebugEnabled()){
+			 log.debug("CalendarUtils.convertCalendar2TimeZoneCalendar(), before convert: " +  beforeConvert);
+		 }
+		cal.setTimeZone(toTimeZone);
+		// !!!!!! the following line must be existed to trigger recomputing after setting time zone
+		String afterConvert = "after - M: " + cal.get(Calendar.DAY_OF_MONTH) + "H:" + cal.get(Calendar.HOUR_OF_DAY);
+		if (log.isDebugEnabled()){
+			 log.debug("CalendarUtils.convertCalendar2TimeZoneCalendar(), after convert: " + afterConvert);			
+		}		
+	 }
+
+	public static void setCalendar(Calendar setCal, Calendar valCal){
+		setCal.set(Calendar.YEAR, valCal.get(Calendar.YEAR));
+		setCal.set(Calendar.MONTH, valCal.get(Calendar.MONTH));
+		setCal.set(Calendar.DATE, valCal.get(Calendar.DATE));
+		setCal.set(Calendar.HOUR_OF_DAY, valCal.get(Calendar.HOUR_OF_DAY));
+		setCal.set(Calendar.MINUTE, valCal.get(Calendar.MINUTE));
+		setCal.set(Calendar.SECOND, valCal.get(Calendar.SECOND));
+		setCal.set(Calendar.MILLISECOND, valCal.get(Calendar.MILLISECOND));
+	}
+	
+	
+	public static Calendar getMinTimeZoneCalendarToday(TimeZone tz) {
+//		Calendar cal = Calendar.getInstance(tz);
+		GregorianCalendar cal = new GregorianCalendar();
+//		cal.setTimeInMillis(System.currentTimeMillis());
+		cal.setTimeZone(tz);
+		trimCalendar2Minimum(cal);
+		return cal;
+	}
+
+	public static Calendar getMaxTimeZoneCalendarToday(TimeZone tz) {
+		GregorianCalendar cal = new GregorianCalendar();
+		cal.setTimeZone(tz);
+		trimCalendar2Maximum(cal);
+		return cal;
+	}
+
+	public static Calendar getMinHostCalendarToday() {
+		TimeZone tz = TimeZone.getDefault();
+		Calendar cal = new GregorianCalendar();
+		cal.setTimeZone(tz);
+		trimCalendar2Minimum(cal);
+		return cal;
+	}
+
+	public static Calendar getMaxHostCalendarToday() {
+		TimeZone tz = TimeZone.getDefault();
+		Calendar cal = new GregorianCalendar();
+		cal.setTimeZone(tz);
+		trimCalendar2Maximum(cal);
+		return cal;
+	}
+
+	public static TimeZone getUtcTimeZone() {
+		TimeZone tz = TimeZone.getTimeZone("Etc/UTC");
+		return tz;
+	}
+
+	public static Calendar getMinUtcCalendarToday() {
+		TimeZone tz = TimeZone.getTimeZone("Etc/UTC");
+		Calendar cal = new GregorianCalendar();
+		cal.setTimeZone(tz);
+		trimCalendar2Minimum(cal);
+		return cal;
+	}
+
+	public static Calendar getMaxUtcCalendarToday() {
+		TimeZone tz = TimeZone.getTimeZone("Etc/UTC");
+		Calendar cal = new GregorianCalendar();
+		cal.setTimeZone(tz);
+		trimCalendar2Maximum(cal);
+		return cal;
+	}
+
+	public static void trimCalendarMinuteSecond(Calendar cal){
+		if (cal != null){
+			cal.set(Calendar.MINUTE, cal.getActualMinimum(Calendar.MINUTE));
+			cal.set(Calendar.SECOND, cal.getActualMinimum(Calendar.SECOND));
+			cal.set(Calendar.MILLISECOND,
+					cal.getActualMinimum(Calendar.MILLISECOND));
+			recomputeCalendar(cal);
+		}
+	}
+	
+	public static void trimCalendar2Minimum(Calendar cal) {
+		if (cal != null) {
+			cal.set(Calendar.HOUR_OF_DAY,
+					cal.getActualMinimum(Calendar.HOUR_OF_DAY));
+			cal.set(Calendar.MINUTE, cal.getActualMinimum(Calendar.MINUTE));
+			cal.set(Calendar.SECOND, cal.getActualMinimum(Calendar.SECOND));
+			cal.set(Calendar.MILLISECOND,
+					cal.getActualMinimum(Calendar.MILLISECOND));
+			recomputeCalendar(cal);
+		}
+	}
+
+	public static Date trimDateMinuteSecond(Date date) {
+		Calendar cal = new GregorianCalendar();
+		cal.setTime(date);
+		trimCalendarMinuteSecond(cal);
+		recomputeCalendar(cal);
+		Date rtnDate = cal.getTime();
+		return rtnDate;
+	}
+	
+	public static Date trimDate2Minimum(Date date) {
+		Calendar cal = new GregorianCalendar();
+		cal.setTime(date);
+		trimCalendar2Minimum(cal);
+		recomputeCalendar(cal);
+		Date rtnDate = cal.getTime();
+		return rtnDate;
+	}
+	
+	public static Date trimDate2Maximum(Date date) {
+		Calendar cal = new GregorianCalendar();
+		cal.setTime(date);
+		trimCalendar2Maximum(cal);
+		recomputeCalendar(cal);
+		Date rtnDate = cal.getTime();
+		return rtnDate;
+	}
+
+	public static void trimCalendar2Maximum(Calendar cal) {
+		if (cal != null) {
+			cal.set(Calendar.HOUR_OF_DAY,
+					cal.getActualMaximum(Calendar.HOUR_OF_DAY));
+			cal.set(Calendar.MINUTE, cal.getActualMaximum(Calendar.MINUTE));
+			cal.set(Calendar.SECOND, cal.getActualMaximum(Calendar.SECOND));
+			cal.set(Calendar.MILLISECOND,
+					cal.getActualMaximum(Calendar.MILLISECOND));
+			recomputeCalendar(cal);
+
+		}
+	}
+
+	public static String convertCalendar2MySqlDateString(Calendar calendar) {
+		StringBuilder mysqlDateSb = new StringBuilder();
+
+		mysqlDateSb.append(calendar.get(Calendar.YEAR));
+		mysqlDateSb.append("-");
+		mysqlDateSb.append(calendar.get(Calendar.MONTH) + 1);
+		mysqlDateSb.append("-");
+		mysqlDateSb.append(calendar.get(Calendar.DAY_OF_MONTH));
+		mysqlDateSb.append(" ");
+		mysqlDateSb.append(calendar.get(Calendar.HOUR));
+		mysqlDateSb.append(":");
+		mysqlDateSb.append(calendar.get(Calendar.MINUTE));
+		mysqlDateSb.append(":");
+		mysqlDateSb.append(calendar.get(Calendar.SECOND));
+
+		return mysqlDateSb.toString();
+	}
+	
+	public static Integer changeDate2Unixtime(Date date){
+		Integer rtnUnixtime = null;
+		if (date != null){
+			rtnUnixtime = (int) (date.getTime() / 1000);
+		}
+		return rtnUnixtime;
+	}
+}

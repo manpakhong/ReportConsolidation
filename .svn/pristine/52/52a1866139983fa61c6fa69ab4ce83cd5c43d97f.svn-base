@@ -1,0 +1,49 @@
+package com.littlecloud.rptconsolidation.threads.providers.impls;
+
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+
+import org.jboss.logging.Logger;
+
+import com.littlecloud.rptconsolidation.eos.ConsolidateJob;
+import com.littlecloud.rptconsolidation.services.ConsolidateJobsMgr;
+import com.littlecloud.rptconsolidation.services.impls.ConsolidateJobsMgrImpl;
+import com.littlecloud.rptconsolidation.threads.providers.ConsolidateJobsProviderThread;
+
+public class ConsolidateJobsProviderThreadImpl implements Runnable, ConsolidateJobsProviderThread {
+	private static final Logger log = Logger.getLogger(ConsolidateJobsProviderThreadImpl.class);
+	private static BlockingQueue<ConsolidateJob> queue;
+
+	public ConsolidateJobsProviderThreadImpl(BlockingQueue<ConsolidateJob> q) {
+		ConsolidateJobsProviderThreadImpl.queue = q;
+	}
+	public void run() {
+		try {
+			while (ConsolidateJobsProviderThreadImpl.queue != null) {
+				List<ConsolidateJob> consolidateJobList = provideJobList();
+				if (consolidateJobList != null && consolidateJobList.size() > 0){
+					for (ConsolidateJob consolidateJob: consolidateJobList){
+						if (consolidateJob != null){
+							ConsolidateJobsProviderThreadImpl.queue.put(consolidateJob);
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.error("ConsolidateJobsProviderThread.run() - ", e);
+		}
+	}
+	
+
+	private List<ConsolidateJob> provideJobList() {
+		List<ConsolidateJob> consolidateJobList = null;
+		try{
+			ConsolidateJobsMgr consolidateJobsMgr = new ConsolidateJobsMgrImpl();
+			consolidateJobList = consolidateJobsMgr.getAllConsolidateJobList();
+		} catch (Exception e){
+			log.error("ConsolidateJobsConsumerThread.consume() - ", e);
+		}
+		return consolidateJobList;
+	}
+
+}

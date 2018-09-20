@@ -1,0 +1,36 @@
+package com.littlecloud.rptconsolidation.helpers;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.littlecloud.util.CalendarUtils;
+
+public class ConsolidateJobsWsHelper {
+	private static final Logger log = LoggerFactory.getLogger(ConsolidateJobsWsHelper.class);
+	public static final String PARAM_DATE_FORMAT = "yyyyMMdd";
+	public static final String PARAM_DATETIME_FORMAT = "yyyyMMddTHHmmss";
+	public static Calendar convertParamDateString2Calendar(String dateString){
+		Calendar cal = CalendarUtils.getUtcCalendarToday();
+		try{
+			Date date = convertParamDateString2Date(dateString);
+			cal.setTime(date);
+		} catch (Exception e){
+			log.error("ConsolidateJobsWsHelper.convertParamDateString2Calendar() - Exception:", e);
+		}
+		return cal;
+	}
+	private static Date convertParamDateString2Date(String dateString){
+		Date date = null;
+		try{
+			SimpleDateFormat sdf = new SimpleDateFormat(PARAM_DATE_FORMAT);
+			date = sdf.parse(dateString);
+		} catch (Exception e){
+			log.error("ConsolidateJobsWsHelper.convertParamDateString2Date() - Exception:", e);
+		}
+		return date;
+	}
+}

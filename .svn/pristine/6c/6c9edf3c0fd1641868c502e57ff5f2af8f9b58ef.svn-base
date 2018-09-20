@@ -1,0 +1,5 @@
+package com.littlecloud.rptconsolidation.services;
+
+public interface ConsolidateJobsChainMgr {
+
+}

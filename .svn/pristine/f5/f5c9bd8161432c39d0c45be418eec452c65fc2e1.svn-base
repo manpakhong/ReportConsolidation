@@ -1,0 +1,29 @@
+package com.littlecloud.rptconsolidation.threads;
+
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+
+import org.jboss.logging.Logger;
+
+import com.littlecloud.rptconsolidation.eos.ConsolidateJob;
+
+public class ConsolidateJobsExecutor implements Runnable {
+	private static final Logger log = Logger.getLogger(ConsolidateJobsExecutor.class);
+	private static ThreadPoolExecutor executor;
+	private boolean runningEnabled = true;
+	private static BlockingQueue<ConsolidateJob> q;
+
+	
+	
+	
+//	private static final Integer maxThreadPool = "MAX_THREAD_POOL";
+//	private static final Integer threadSleep = "THREAD_SLEEP";
+//	
+	
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+
+	}
+
+}

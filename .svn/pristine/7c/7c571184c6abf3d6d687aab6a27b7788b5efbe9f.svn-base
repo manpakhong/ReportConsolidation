@@ -1,0 +1,7 @@
+package com.littlecloud.rptconsolidation.criterias;
+
+import com.littlecloud.rptconsolidation.eos.ConsolidateJob;
+
+public class ConsolidateJobCriteria extends ConsolidateJob {
+
+}

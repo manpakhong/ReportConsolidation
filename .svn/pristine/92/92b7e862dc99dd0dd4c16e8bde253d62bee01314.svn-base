@@ -1,0 +1,123 @@
+package com.littlecloud.rptconsolidation.threads.executors.impls;
+
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import org.jboss.logging.Logger;
+
+import com.littlecloud.rptconsolidation.eos.ConsolidateJob;
+import com.littlecloud.rptconsolidation.eos.SystemParamsBundles;
+import com.littlecloud.rptconsolidation.threads.consumers.ConsolidateJobsConsumerThread;
+import com.littlecloud.rptconsolidation.threads.executors.RptConsolidationExecutor;
+import com.littlecloud.systems.BundlesLoader;
+import com.littlecloud.systems.impls.BundlesLoaderSystemBundlesImpl;
+
+public class ConsolidateJobsProviderExecutorImpl implements Runnable,RptConsolidationExecutor <ConsolidateJob> {
+	private static final Logger log = Logger.getLogger(ConsolidateJobsProviderExecutorImpl.class);
+	private static ThreadPoolExecutor executor;
+	private boolean runningEnabled = true;
+	private static BlockingQueue<ConsolidateJob> q;
+	private SystemParamsBundles bundlesDto;
+
+	
+	private void init(){
+		try{
+			BundlesLoader <SystemParamsBundles> bundlesFactory = new BundlesLoaderSystemBundlesImpl();
+			bundlesDto = bundlesFactory.getBundleDto();
+		} catch (Exception e){
+			log.error("ConsolidateJobsExecutor.init() - Exception: ", e);
+		}
+	}
+	
+	public ThreadPoolExecutor getExecutor() {
+		return executor;
+	}
+	
+	public ConsolidateJobsProviderExecutorImpl(BlockingQueue<ConsolidateJob> q){
+		init();
+		ConsolidateJobsProviderExecutorImpl.q = q;
+		if (executor == null){
+			executor = new ThreadPoolExecutor(bundlesDto.getMaxThreadPool(), bundlesDto.getMaxThreadPool(),
+                    0L, TimeUnit.MILLISECONDS,
+                    new LinkedBlockingQueue<Runnable>());
+		}
+
+	}
+	public BlockingQueue<ConsolidateJob> getQueue(){
+		return ConsolidateJobsProviderExecutorImpl.q;
+	}
+	
+	public boolean enqueue(ConsolidateJob consolidateJob){
+		boolean isAdded= false;
+		try{
+			ConsolidateJobsProviderExecutorImpl.q.put(consolidateJob);
+		} catch (Exception e){
+			log.error("ConsolidateJobsExecutor.isEnqueue() - ", e );
+		}
+		return isAdded;
+	}
+	
+	private void execute(ConsolidateJobsConsumerThread consumerThread){
+		try{
+			executor.execute(consumerThread);
+		} catch (Exception e){
+			log.error("ConsolidateJobsExecutor.execute() - ", e );
+		}
+	}
+	
+	public boolean getRunningEnabled() {
+		return runningEnabled;
+	}
+
+	public void setRunningEnabled(boolean runningEnabled) {
+		this.runningEnabled = runningEnabled;
+	}
+	public void shutdown(){
+		if (executor != null){
+			if (executor != null){
+				if (!executor.isShutdown()) {
+					executor.shutdown();
+					try{
+						if (!executor.awaitTermination(1, TimeUnit.SECONDS)) {
+							if (log.isDebugEnabled()){
+								log.debugf("ConsolidateJobsExecutor.shutdown() - Some are still running after 1sec");
+							}
+					        executor.shutdownNow();
+					        if (!executor.awaitTermination(1, TimeUnit.SECONDS)) {
+					        	if (log.isDebugEnabled()){
+					        		log.debugf("ConsolidateJobsExecutor.shutdown() - Some did not end and exit anyway");
+					        	}
+					        }
+					    }					
+					} catch(InterruptedException e){
+						executor.shutdownNow();
+						log.error("ConsolidateJobsExecutor.shutdown() - Interrupted and exit anyway", e );
+					}
+				}
+				executor = null;
+			}
+		}
+	}
+	
+	@Override
+	public void run() {
+		try{
+			while (runningEnabled){
+				if (ConsolidateJobsProviderExecutorImpl.q != null && ConsolidateJobsProviderExecutorImpl.q.size() > 0){
+					ConsolidateJobsConsumerThread consumerThread = new ConsolidateJobsConsumerThread(ConsolidateJobsProviderExecutorImpl.q);
+					execute(consumerThread);
+				}
+				if (log.isDebugEnabled()){
+					log.debugf("ConsolidateJobsExecutor.run(), ConsolidateJobsExecutor.q: %s", ConsolidateJobsProviderExecutorImpl.q);					
+				}
+				Thread.sleep(bundlesDto.getThreadSleep());
+			}
+		} catch (Exception e){
+			log.error("ConsolidateJobsExecutor.run() - ", e );
+		}
+	}
+
+
+}

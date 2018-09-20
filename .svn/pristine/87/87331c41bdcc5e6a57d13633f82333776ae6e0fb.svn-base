@@ -1,0 +1,62 @@
+package com.littlecloud.rptconsolidation.helpers;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.littlecloud.rptconsolidation.dtos.PrepareStatementParamDto;
+import com.littlecloud.utils.CalendarUtils;
+
+public class DaoHelper {
+	private static final Logger log = LoggerFactory.getLogger(DaoHelper.class);
+	List<PrepareStatementParamDto> paramList;
+	public DaoHelper(){
+		init();
+	}
+	
+	private void init(){
+		paramList = new ArrayList<PrepareStatementParamDto>();
+	}
+	public void putSequenceAndValue(Integer sequence, Object value){
+		PrepareStatementParamDto prepareStatementParamDto = new PrepareStatementParamDto();
+		prepareStatementParamDto.setObject(value);
+		prepareStatementParamDto.setSequence(sequence);
+		paramList.add(prepareStatementParamDto);
+	}
+	
+	public PreparedStatement getPrepareStatement(Connection conn, String sql){
+		PreparedStatement preparedStmt = null;
+		try{
+			preparedStmt = conn.prepareStatement(sql);		
+			if (conn != null && sql != null && !sql.isEmpty() && paramList != null){
+				for (int i =0; i <paramList.size(); i++){
+					PrepareStatementParamDto prepareStatementParamDto = paramList.get(i);
+					if (prepareStatementParamDto.getObject() != null){
+						if (prepareStatementParamDto.getObject() instanceof Integer){
+							Integer value = (Integer) prepareStatementParamDto.getObject();
+							preparedStmt.setInt(i, value);
+						} else if (prepareStatementParamDto.getObject() instanceof String){
+							String value = (String) prepareStatementParamDto.getObject();
+							preparedStmt.setString(i, value);
+						} else if (prepareStatementParamDto.getObject() instanceof Date){
+							Date value = (Date) prepareStatementParamDto.getObject();
+							preparedStmt.setDate(i, CalendarUtils.convertJavaDate2SqlDate(value));
+						} else if (prepareStatementParamDto.getObject() instanceof Boolean){
+							Boolean value = (Boolean) prepareStatementParamDto.getObject();
+							preparedStmt.setBoolean(i, value);
+						}
+					}
+				}
+			}
+		} catch (Exception e){
+			log.error("DaoHelper.getPrepareStatementParams() - Exception:", e);
+		}
+		return preparedStmt;
+	}
+	
+}

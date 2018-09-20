@@ -1,0 +1,29 @@
+package com.littlecloud.rptconsolidation.eos;
+
+public class ControllerBundles {
+	private Integer maxThreadPool;
+	private Integer threadSleep;
+	public Integer getMaxThreadPool() {
+		return maxThreadPool;
+	}
+	public void setMaxThreadPool(Integer maxThreadPool) {
+		this.maxThreadPool = maxThreadPool;
+	}
+	public Integer getThreadSleep() {
+		return threadSleep;
+	}
+	public void setThreadSleep(Integer threadSleep) {
+		this.threadSleep = threadSleep;
+	}
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("ControllerBundlerDto [maxThreadPool=");
+		builder.append(maxThreadPool);
+		builder.append(", threadSleep=");
+		builder.append(threadSleep);
+		builder.append("]");
+		return builder.toString();
+	}
+	
+}

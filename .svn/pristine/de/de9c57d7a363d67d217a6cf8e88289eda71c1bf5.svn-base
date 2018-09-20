@@ -1,0 +1,5 @@
+package com.littlecloud.rptconsolidation.controllers.impls;
+
+public class ConsolidateJobsExecutorControllerImpl {
+
+}

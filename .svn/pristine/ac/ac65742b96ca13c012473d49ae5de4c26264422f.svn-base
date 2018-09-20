@@ -1,0 +1,96 @@
+package com.littlecloud.rptconsolidation.eos;
+
+import java.util.Date;
+
+public class ConsolidateJob {
+	public final static String STATUS_WAITING = "waiting";
+	public final static String STATUS_MIGRATING = "migrating";
+	protected Integer id;
+	protected Date createdDate;
+	protected Date updatedDate;
+	protected String server;
+	protected String jobName;
+	protected String status;
+	protected Date startDateTime;
+	protected Date endDateTime;
+	protected Boolean active;
+	public Integer getId() {
+		return id;
+	}
+	public void setId(Integer id) {
+		this.id = id;
+	}
+	public Date getCreatedDate() {
+		return createdDate;
+	}
+	public void setCreatedDate(Date createdDate) {
+		this.createdDate = createdDate;
+	}
+	public Date getUpdatedDate() {
+		return updatedDate;
+	}
+	public void setUpdatedDate(Date updatedDate) {
+		this.updatedDate = updatedDate;
+	}
+	public String getServer() {
+		return server;
+	}
+	public void setServer(String server) {
+		this.server = server;
+	}
+	public String getJobName() {
+		return jobName;
+	}
+	public void setJobName(String jobName) {
+		this.jobName = jobName;
+	}
+	public Boolean getActive() {
+		return active;
+	}
+	public void setActive(Boolean active) {
+		this.active = active;
+	}
+	public String getStatus() {
+		return status;
+	}
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	public Date getStartDateTime() {
+		return startDateTime;
+	}
+	public void setStartDateTime(Date startDateTime) {
+		this.startDateTime = startDateTime;
+	}
+	public Date getEndDateTime() {
+		return endDateTime;
+	}
+	public void setEndDateTime(Date endDateTime) {
+		this.endDateTime = endDateTime;
+	}
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("ConsolidateJob [id=");
+		builder.append(id);
+		builder.append(", createdDate=");
+		builder.append(createdDate);
+		builder.append(", updatedDate=");
+		builder.append(updatedDate);
+		builder.append(", server=");
+		builder.append(server);
+		builder.append(", jobName=");
+		builder.append(jobName);
+		builder.append(", status=");
+		builder.append(status);
+		builder.append(", startDateTime=");
+		builder.append(startDateTime);
+		builder.append(", endDateTime=");
+		builder.append(endDateTime);
+		builder.append(", active=");
+		builder.append(active);
+		builder.append("]");
+		return builder.toString();
+	}
+
+}

@@ -1,0 +1,43 @@
+package com.littlecloud.rptconsolidation.factories;
+
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.littlecloud.rptconsolidation.eos.ConsolidateJob;
+import com.littlecloud.rptconsolidation.eos.SystemParamsBundles;
+import com.littlecloud.rptconsolidation.threads.executors.ConsolidateJobsExecutor;
+
+public class ExecutorsFactory{
+	private static final Logger log = LoggerFactory.getLogger(ExecutorsFactory.class);
+	private static ConsolidateJobsExecutor consolidateJobsExecutor;
+	private static BlockingQueue<ConsolidateJob> consolidateJobQueue;
+	
+
+	public static ConsolidateJobsExecutor getConsolidateJobsExecutorInstance(){
+		try{
+			if (consolidateJobsExecutor == null){
+				consolidateJobsExecutor = new ConsolidateJobsExecutor(getConsolidateJobQueueInstance());
+			}
+		} catch (Exception e){
+			log.debug("CommonBsDbConnFactoryImpl.getConnectionInstance() - ", e);
+		}
+		return consolidateJobsExecutor;
+	}
+	
+	
+	private static BlockingQueue<ConsolidateJob> getConsolidateJobQueueInstance() {
+		try {
+			SystemParamsBundles systemParamsBundles = BundlesFactory.getSystemParamsBundlesInstance();
+			if (consolidateJobQueue == null){
+				consolidateJobQueue = new ArrayBlockingQueue<ConsolidateJob>(systemParamsBundles.getQueueSize());
+			}
+		} catch (Exception e) {
+			log.error("ExecutorsFactoryImpl.getConsolidateJobQueueInstance() - ", e );
+		}
+		return consolidateJobQueue;
+	}
+	
+}

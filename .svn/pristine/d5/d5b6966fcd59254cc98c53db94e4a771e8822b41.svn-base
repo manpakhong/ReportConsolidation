@@ -1,0 +1,37 @@
+package com.littlecloud.rptconsolidation.factories.impls;
+
+import java.util.Properties;
+
+import com.littlecloud.rptconsolidation.dtos.DbBundlesDto;
+import com.littlecloud.rptconsolidation.factories.BundlesFactory;
+import com.littlecloud.rptconsolidation.utils.PropertiesUtils;
+
+public class BundlesFactoryDbImpl implements BundlesFactory <DbBundlesDto>{
+	private static final String PROPERTIES_JAVA_RUNTIME = "system.properties";
+	private static final String PROPERTIES_SYSTEM_RESOURCE = "system.properties";
+	private static Properties systemProperties;
+	private static DbBundlesDto dbBundlesDto;
+	private void loadInstanceOfSystemProperties(){
+		if (systemProperties == null){
+			systemProperties = PropertiesUtils.readPropertiesByJavaRuntimeVariable(PROPERTIES_JAVA_RUNTIME);
+		}
+		if (systemProperties == null){
+			systemProperties = PropertiesUtils.readPropertiesBySystemResource(PROPERTIES_SYSTEM_RESOURCE);
+		}
+	}
+	@Override
+	public DbBundlesDto getBundleDto() {
+		if (dbBundlesDto == null){
+			loadInstanceOfSystemProperties();
+			if (systemProperties != null){
+				dbBundlesDto = new DbBundlesDto();
+				dbBundlesDto.setHost(systemProperties.getProperty("db.bscommon.host", "bs1db.dev.pepwave.com"));
+				dbBundlesDto.setUser(systemProperties.getProperty("db.bscommon.user", "root"));
+				dbBundlesDto.setPassword(systemProperties.getProperty("db.bscommon.password", "pepl2302"));
+				dbBundlesDto.setPort(systemProperties.getProperty("db.bscommon.port", "3306"));
+				dbBundlesDto.setSchema(systemProperties.getProperty("db.bscommon.schema", "bs_common_db"));
+			}
+		}
+		return dbBundlesDto;
+	}
+}

@@ -1,0 +1,105 @@
+package com.littlecloud.rptconsolidation.threads.consumers.impls;
+
+import java.util.Calendar;
+import java.util.concurrent.BlockingQueue;
+
+import org.jboss.logging.Logger;
+
+import com.littlecloud.rptconsolidation.dtos.ConsolidateJobCommonParamsDto;
+import com.littlecloud.rptconsolidation.eos.ConsolidateJob;
+import com.littlecloud.rptconsolidation.eos.SystemParamsBundles;
+import com.littlecloud.rptconsolidation.factories.BundlesFactory;
+import com.littlecloud.rptconsolidation.services.ConsolidateJobsChainMgr;
+import com.littlecloud.rptconsolidation.services.ConsolidateJobsMgr;
+import com.littlecloud.rptconsolidation.services.impls.ConsolidateJobsChainMgrImpl;
+import com.littlecloud.rptconsolidation.services.impls.ConsolidateJobsMgrImpl;
+import com.littlecloud.rptconsolidation.threads.consumers.ConsolidateJobsConsumerThread;
+import com.littlecloud.utils.CalendarUtils;
+
+public class ConsolidateJobsConsumerThreadImpl implements Runnable, ConsolidateJobsConsumerThread <ConsolidateJob>{
+	private static final Logger log = Logger.getLogger(ConsolidateJobsConsumerThreadImpl.class);
+	protected static BlockingQueue<ConsolidateJob> queue;
+	protected ConsolidateJobsMgr consolidateJobsMgr;
+	protected static SystemParamsBundles systemParamsBundles;
+	
+	public ConsolidateJobsConsumerThreadImpl(BlockingQueue<ConsolidateJob> q) {
+		init(q, null);
+	}
+	public ConsolidateJobsConsumerThreadImpl(BlockingQueue<ConsolidateJob> q, String mode) {
+		init(q, mode);
+	}
+	private void init(BlockingQueue<ConsolidateJob> q, String mode){
+		ConsolidateJobsConsumerThreadImpl.queue = q;
+		consolidateJobsMgr = new ConsolidateJobsMgrImpl(mode);	
+		systemParamsBundles = BundlesFactory.getSystemParamsBundlesInstance();
+	}
+	
+
+	public void run() {
+		try {
+			if (ConsolidateJobsConsumerThreadImpl.queue.size() > 0) {
+				consume(ConsolidateJobsConsumerThreadImpl.queue.poll());
+			}
+		} catch (Exception e) {
+			log.error("ConsolidateJobsConsumerThread.run() - ", e);
+		}
+	}
+	
+	private void changeStatus2Processing(ConsolidateJob consolidateJob){
+		consolidateJob.setStatus(ConsolidateJob.STATUS_PROCESSING);
+		Calendar calStart = CalendarUtils.getUtcCalendarToday();
+		consolidateJob.setUpdatedDate(calStart.getTime());
+		consolidateJob.setStartDateTime(calStart.getTime());
+		int noOfRecordUpdatedStart = consolidateJobsMgr.updateConsolidateJob(consolidateJob);
+		if (noOfRecordUpdatedStart == 0){
+			log.warn("ConsolidateJobsConsumerThreadImpl.consume() - consolidateJob:" + consolidateJob);
+		}		
+	}
+	
+	private void changeStatus2Finished(ConsolidateJob consolidateJob){
+		consolidateJob.setStatus(ConsolidateJob.STATUS_FINISHED);
+		Calendar calEnd = CalendarUtils.getUtcCalendarToday();
+		consolidateJob.setUpdatedDate(calEnd.getTime());
+		consolidateJob.setEndDateTime(calEnd.getTime());
+		int noOfRecordUpdatedEnd = consolidateJobsMgr.updateConsolidateJob(consolidateJob);
+		if (noOfRecordUpdatedEnd == 0){
+			log.warn("ConsolidateJobsConsumerThreadImpl.consume() - consolidateJob:" + consolidateJob);
+		}
+				
+	}
+	
+	protected void consume(ConsolidateJob consolidateJob) {
+		try{
+			if (consolidateJob != null ){
+				changeStatus2Processing(consolidateJob);
+				
+				ConsolidateJobCommonParamsDto consolidateJobCommonParamsDto = new ConsolidateJobCommonParamsDto();
+
+				Calendar calFrom = CalendarUtils.getMaxUtcCalendarToday();
+				Calendar calTo = CalendarUtils.getMinUtcCalendarToday();
+				
+				if (consolidateJob.getDoDateFrom() != null && consolidateJob.getDoDateTo() != null){
+					calFrom.setTime(consolidateJob.getDoDateFrom());
+					CalendarUtils.trimCalendar2Minimum(calFrom);
+					
+					calTo.setTime(consolidateJob.getDoDateTo());
+					CalendarUtils.trimCalendar2Maximum(calTo);
+				}
+				consolidateJobCommonParamsDto.setCalFrom(calFrom);
+				consolidateJobCommonParamsDto.setCalTo(calTo);
+				consolidateJobCommonParamsDto.setConsolidateJob(consolidateJob);
+				ConsolidateJobsChainMgr consolidateJobsChainMgr = new ConsolidateJobsChainMgrImpl();
+				String rtnString = consolidateJobsChainMgr.passJob(consolidateJobCommonParamsDto);
+				StringBuilder sb = new StringBuilder();
+				sb.append(rtnString);
+				
+				
+				
+				changeStatus2Finished(consolidateJob);
+				log.info("ConsolidateJobsConsumerThreadImpl.run() - poll:" + consolidateJob);
+			}
+		} catch (Exception e){
+			log.error("ConsolidateJobsConsumerThread.consume() - ", e);
+		}
+	}
+}

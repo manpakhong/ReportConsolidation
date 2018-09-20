@@ -1,0 +1,5 @@
+db.bscommon.host=bs1db.dev.pepwave.com
+db.bscommon.user=root
+db.bscommon.password=pepl2302
+db.bscommon.schema=bs_common_db
+db.bscommon.port=3306

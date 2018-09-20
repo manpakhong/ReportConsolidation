@@ -1,0 +1,34 @@
+package com.littlecloud.rptconsolidation.utils;
+
+import java.util.Date;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class DateUtils {
+	private static final Logger log = LoggerFactory.getLogger(DateUtils.class);
+	public static java.sql.Date convertJavaDate2SqlDate(Date javaDate){
+		java.sql.Date sqlDate = null;
+		try{
+			if (javaDate != null){
+				sqlDate = new java.sql.Date(javaDate.getTime());
+			}
+		} catch (Exception e){
+			log.error("DateUtils.convertJavaDate2SqlDate() - Exception: ", e);
+		}
+		return sqlDate;
+	}
+	public static Date convertSqlDate2JavaDate(java.sql.Date sqlDate){
+		Date javaDate = null;
+		try{
+			if (sqlDate != null){
+				javaDate = new Date(sqlDate.getTime());
+			}
+		} catch (Exception e){
+			log.error("DateUtils.convertJavaDate2SqlDate() - Exception: ", e);
+		}
+		return javaDate;
+	}
+	
+	
+}

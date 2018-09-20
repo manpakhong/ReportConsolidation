@@ -1,0 +1,270 @@
+package com.littlecloud.rptconsolidation.webservices;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.littlecloud.control.dao.NetworksDAO;
+import com.littlecloud.control.entity.Networks;
+import com.littlecloud.rptconsolidation.eos.ConsolidateJob;
+import com.littlecloud.rptconsolidation.helpers.ConsolidateJobsWsHelper;
+import com.littlecloud.rptconsolidation.services.ConsolidateJobsMgr;
+import com.littlecloud.rptconsolidation.services.impls.ConsolidateJobsMgrImpl;
+import com.littlecloud.rptconsolidation.utils.SystemUtils;
+import com.littlecloud.services.DeviceDailyUsagesMgr;
+import com.littlecloud.services.DeviceDpiDailyUsagesMgr;
+import com.littlecloud.services.DeviceDpiMonthlyUsagesMgr;
+import com.littlecloud.services.DeviceMonthlyUsagesMgr;
+import com.littlecloud.services.DeviceSsidDailyUsagesMgr;
+import com.littlecloud.utils.CalendarUtils;
+import com.littlecloud.utils.CommonUtils;
+//http://localhost:8080/rptconsolidation/rest/consolidateJobWs/getAllConsolidateJob
+@Path("/consolidateJobWs")
+public class ConsolidateJobsWs {
+	private static final Logger log = LoggerFactory.getLogger(ConsolidateJobsWs.class);
+	
+	public ConsolidateJobsWs(){
+		init();
+	}
+	private void init(){
+		try{
+			SystemUtils.loadLittleCloudProperties();			
+		} catch (Exception e){
+			log.error("ConsolidateJobsWs.init() - Exception: ", e);
+		}
+	}
+	
+	@GET
+	@Path("/getAllConsolidateJob")
+	@Produces("text/plain")
+	public String getAllConsolidateJob(){ 
+		String returnString = "";
+		try{
+
+			ConsolidateJobsMgr consolidateJobMgr = new ConsolidateJobsMgrImpl();
+			List<ConsolidateJob> consolidateJobList = consolidateJobMgr.getAllConsolidateJobList();
+			StringBuilder sb = new StringBuilder();
+			for (ConsolidateJob consolidateJob: consolidateJobList){
+				sb.append(consolidateJob + "\n");
+			}
+			returnString = sb.toString();
+		}catch (Exception e){
+			log.error("ConsolidateJobsWs.getAllConsolidateJob() - Exception: ", e);
+		}
+		return returnString;
+	}
+	
+	
+	@GET
+	@Path("/doDeviceDailyUsagesConsolidation")
+	@Produces("text/plain")
+	public String doDeviceDailyUsagesConsolidation(
+			@QueryParam("dateFrom") String dateFrom,
+			@QueryParam("dateTo") String dateTo,
+			@QueryParam("orgId") String orgId,
+			@QueryParam("networkId") String networkId
+			){ 
+		StringBuilder sb = new StringBuilder();
+		try{
+			if (dateFrom != null && dateTo != null && orgId != null){
+				Calendar calFrom = ConsolidateJobsWsHelper.convertParamDateString2Calendar(dateFrom);
+				CalendarUtils.trimCalendar2Minimum(calFrom);
+				Calendar calTo = ConsolidateJobsWsHelper.convertParamDateString2Calendar(dateTo);
+				CalendarUtils.trimCalendar2Maximum(calTo);
+				
+				long tstart = System.currentTimeMillis();
+				int noOfRecordsDone = 0;
+				DeviceDailyUsagesMgr deviceDailyUsagesMgr = new  DeviceDailyUsagesMgr(orgId);
+				if (networkId == null){
+					deviceDailyUsagesMgr.doDeviceDailyUsagesConsolidation(calFrom, calTo);
+				} else {
+					NetworksDAO networksDao = new NetworksDAO(orgId);
+					if (CommonUtils.isInteger(networkId)){
+						Integer networkIdInt = new Integer(networkId);
+						Networks network= networksDao.getNetworksById(networkIdInt);
+						if (network != null){
+							List<Networks> networkList = new ArrayList<Networks>();
+							networkList.add(network);
+							noOfRecordsDone = deviceDailyUsagesMgr.doDeviceDailyUsagesConsolidation(calFrom, calTo, networkList);
+						}
+					}
+				}
+				long tused = (System.currentTimeMillis() - tstart) / 1000;
+				sb.append("DeviceDailyUsageConsolidate - no of records:" + noOfRecordsDone + ", ");
+				sb.append("time: " + tused);
+				
+			} else {
+				log.warn("ConsolidateJobsWs.doDeviceDailyUsagesConsolidation() - insufficient params: dateFrom:" + dateFrom + ",dateTo:" + dateTo + ",orgId:" + orgId);
+			}
+		}catch (Exception e){
+			log.error("ConsolidateJobsWs.doDeviceDailyUsagesConsolidation() - Exception: ", e);
+		}
+		return sb.toString();
+	}
+	@GET
+	@Path("/doDeviceMonthlyUsagesConsolidation")
+	@Produces("text/plain")
+	public String doDeviceMonthlyUsagesConsolidation(
+			@QueryParam("dateFrom") String dateFrom,
+			@QueryParam("dateTo") String dateTo,
+			@QueryParam("orgId") String orgId
+			){ 
+		StringBuilder sb = new StringBuilder();
+		try{
+			if (dateFrom != null && dateTo != null && orgId != null){
+				Calendar calFrom = ConsolidateJobsWsHelper.convertParamDateString2Calendar(dateFrom);
+				CalendarUtils.trimCalendar2Minimum(calFrom);
+				Calendar calTo = ConsolidateJobsWsHelper.convertParamDateString2Calendar(dateTo);
+				CalendarUtils.trimCalendar2Maximum(calTo);
+				
+				long tstart = System.currentTimeMillis();
+				int noOfRecordsDone = 0;
+				DeviceMonthlyUsagesMgr deviceMonthlyUsagesMgr = new  DeviceMonthlyUsagesMgr(orgId);
+				noOfRecordsDone = deviceMonthlyUsagesMgr.doDeviceMonthlyUsagesConsolidation(calFrom, calTo);
+				
+				long tused = (System.currentTimeMillis() - tstart) / 1000;
+				sb.append("DeviceMonthlyUsageConsolidate - no of records:" + noOfRecordsDone + ", ");
+				sb.append("time: " + tused);
+				
+			} else {
+				log.warn("ConsolidateJobsWs.doDeviceMonthlyUsagesConsolidation() - insufficient params: dateFrom:" + dateFrom + ",dateTo:" + dateTo + ",orgId:" + orgId);
+			}
+		}catch (Exception e){
+			log.error("ConsolidateJobsWs.doDeviceMonthlyUsagesConsolidation() - Exception: ", e);
+		}
+		return sb.toString();
+	}
+	@GET
+	@Path("/doDeviceDpiDailyUsagesConsolidation")
+	@Produces("text/plain")
+	public String doDeviceDpiDailyUsagesConsolidation(
+			@QueryParam("dateFrom") String dateFrom,
+			@QueryParam("dateTo") String dateTo,
+			@QueryParam("orgId") String orgId,
+			@QueryParam("networkId") String networkId
+			){ 
+		StringBuilder sb = new StringBuilder();
+		try{
+			if (dateFrom != null && dateTo != null && orgId != null){
+				Calendar calFrom = ConsolidateJobsWsHelper.convertParamDateString2Calendar(dateFrom);
+				CalendarUtils.trimCalendar2Minimum(calFrom);
+				Calendar calTo = ConsolidateJobsWsHelper.convertParamDateString2Calendar(dateTo);
+				CalendarUtils.trimCalendar2Maximum(calTo);
+				
+				long tstart = System.currentTimeMillis();
+				int noOfRecordsDone = 0;
+				DeviceDpiDailyUsagesMgr deviceDpiDailyUsagesMgr = new  DeviceDpiDailyUsagesMgr(orgId);
+				if (networkId == null){
+					deviceDpiDailyUsagesMgr.doDeviceDpiDailyUsagesConsolidation(calFrom, calTo);
+				} else {
+					NetworksDAO networksDao = new NetworksDAO(orgId);
+					if (CommonUtils.isInteger(networkId)){
+						Integer networkIdInt = new Integer(networkId);
+						Networks network= networksDao.getNetworksById(networkIdInt);
+						if (network != null){
+							List<Networks> networkList = new ArrayList<Networks>();
+							networkList.add(network);
+							noOfRecordsDone = deviceDpiDailyUsagesMgr.doDeviceDpiDailyUsagesConsolidation(calFrom, calTo, networkList);
+						}
+					}
+				}
+				long tused = (System.currentTimeMillis() - tstart) / 1000;
+				sb.append("DeviceDpiDailyUsageConsolidate - no of records:" + noOfRecordsDone + ", ");
+				sb.append("time: " + tused);
+				
+			} else {
+				log.warn("ConsolidateJobsWs.doDeviceDpiDailyUsagesConsolidation() - insufficient params: dateFrom:" + dateFrom + ",dateTo:" + dateTo + ",orgId:" + orgId);
+			}
+		}catch (Exception e){
+			log.error("ConsolidateJobsWs.doDeviceDpiDailyUsagesConsolidation() - Exception: ", e);
+		}
+		return sb.toString();
+	}
+	@GET
+	@Path("/doDeviceDpiMonthlyUsagesConsolidation")
+	@Produces("text/plain")
+	public String doDeviceDpiMonthlyUsagesConsolidation(
+			@QueryParam("dateFrom") String dateFrom,
+			@QueryParam("dateTo") String dateTo,
+			@QueryParam("orgId") String orgId
+			){ 
+		StringBuilder sb = new StringBuilder();
+		try{
+			if (dateFrom != null && dateTo != null && orgId != null){
+				Calendar calFrom = ConsolidateJobsWsHelper.convertParamDateString2Calendar(dateFrom);
+				CalendarUtils.trimCalendar2Minimum(calFrom);
+				Calendar calTo = ConsolidateJobsWsHelper.convertParamDateString2Calendar(dateTo);
+				CalendarUtils.trimCalendar2Maximum(calTo);
+				
+				long tstart = System.currentTimeMillis();
+				int noOfRecordsDone = 0;
+				DeviceDpiMonthlyUsagesMgr deviceDpiMonthlyUsagesMgr = new  DeviceDpiMonthlyUsagesMgr(orgId);
+				noOfRecordsDone = deviceDpiMonthlyUsagesMgr.doDeviceDpiMonthlyUsagesConsolidation(calFrom, calTo);
+				
+				long tused = (System.currentTimeMillis() - tstart) / 1000;
+				sb.append("DeviceDpiMonthlyUsageConsolidate - no of records:" + noOfRecordsDone + ", ");
+				sb.append("time: " + tused);
+				
+			} else {
+				log.warn("ConsolidateJobsWs.doDeviceDpiMonthlyUsagesConsolidation() - insufficient params: dateFrom:" + dateFrom + ",dateTo:" + dateTo + ",orgId:" + orgId);
+			}
+		}catch (Exception e){
+			log.error("ConsolidateJobsWs.doDeviceDpiMonthlyUsagesConsolidation() - Exception: ", e);
+		}
+		return sb.toString();
+	}	
+	@GET
+	@Path("/doDeviceSsidDailyUsagesConsolidation")
+	@Produces("text/plain")
+	public String doDeviceSsidDailyUsagesConsolidation(
+			@QueryParam("dateFrom") String dateFrom,
+			@QueryParam("dateTo") String dateTo,
+			@QueryParam("orgId") String orgId,
+			@QueryParam("networkId") String networkId
+			){ 
+		StringBuilder sb = new StringBuilder();
+		try{
+			if (dateFrom != null && dateTo != null && orgId != null){
+				Calendar calFrom = ConsolidateJobsWsHelper.convertParamDateString2Calendar(dateFrom);
+				CalendarUtils.trimCalendar2Minimum(calFrom);
+				Calendar calTo = ConsolidateJobsWsHelper.convertParamDateString2Calendar(dateTo);
+				CalendarUtils.trimCalendar2Maximum(calTo);
+				
+				long tstart = System.currentTimeMillis();
+				int noOfRecordsDone = 0;
+				DeviceSsidDailyUsagesMgr deviceSsidDailyUsagesMgr = new  DeviceSsidDailyUsagesMgr(orgId);
+				if (networkId == null){
+					deviceSsidDailyUsagesMgr.doDeviceSsidDailyUsagesConsolidation(calFrom, calTo);
+				} else {
+					NetworksDAO networksDao = new NetworksDAO(orgId);
+					if (CommonUtils.isInteger(networkId)){
+						Integer networkIdInt = new Integer(networkId);
+						Networks network= networksDao.getNetworksById(networkIdInt);
+						if (network != null){
+							List<Networks> networkList = new ArrayList<Networks>();
+							networkList.add(network);
+							noOfRecordsDone = deviceSsidDailyUsagesMgr.doDeviceSsidDailyUsagesConsolidation(calFrom, calTo, networkList);
+						}
+					}
+				}
+				long tused = (System.currentTimeMillis() - tstart) / 1000;
+				sb.append("DeviceSsidDailyUsageConsolidate - no of records:" + noOfRecordsDone + ", ");
+				sb.append("time: " + tused);
+				
+			} else {
+				log.warn("ConsolidateJobsWs.doDeviceSsidDailyUsagesConsolidation() - insufficient params: dateFrom:" + dateFrom + ",dateTo:" + dateTo + ",orgId:" + orgId);
+			}
+		}catch (Exception e){
+			log.error("ConsolidateJobsWs.doDeviceSsidDailyUsagesConsolidation() - Exception: ", e);
+		}
+		return sb.toString();
+	}
+} // end class

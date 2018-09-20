@@ -1,0 +1,54 @@
+package com.littlecloud.rptconsolidation.threads;
+
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import org.jboss.logging.Logger;
+
+import com.littlecloud.ac.messagehandler.queue.executor.CaptivePortalMessageThreadExecutor;
+import com.littlecloud.rptconsolidation.eos.ConsolidateJob;
+import com.littlecloud.rptconsolidation.eos.ControllerBundles;
+import com.littlecloud.rptconsolidation.factories.BundlesFactory;
+import com.littlecloud.rptconsolidation.factories.impls.BundlesFactoryControllerImpl;
+
+public class ConsolidateJobsExecutor implements Runnable {
+	private static final Logger log = Logger.getLogger(ConsolidateJobsExecutor.class);
+	private static ThreadPoolExecutor executor;
+	private boolean runningEnabled = true;
+	private static BlockingQueue<ConsolidateJob> q;
+	private ControllerBundles bundlesDto;
+
+	
+	private void init(){
+		try{
+			BundlesFactory <ControllerBundles> bundlesFactory = new BundlesFactoryControllerImpl();
+			bundlesDto = bundlesFactory.getBundleDto();
+		} catch (Exception e){
+			log.error("ConsolidateJobsExecutor.init() - Exception: ", e);
+		}
+	}
+	
+	public static ThreadPoolExecutor getExecutor() {
+		return executor;
+	}
+	
+	public ConsolidateJobsExecutor(BlockingQueue<ConsolidateJob> q){
+		ConsolidateJobsExecutor.q = q;
+//		if (executor == null){
+//			executor = new ThreadPoolExecutor(bundlesDto.getMaxThreadPool(), bundlesDto.getMaxThreadPool(),
+//                    0L, TimeUnit.MILLISECONDS,
+//                    new LinkedBlockingQueue<Runnable>());
+//					//Executors.newFixedThreadPool(maxThreadPool);
+//		}
+		init();
+	}
+	
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+
+	}
+
+}

@@ -1,0 +1,219 @@
+package com.littlecloud.rptconsolidation.daos.impls;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.littlecloud.rptconsolidation.criterias.ConsolidateJobCriteria;
+import com.littlecloud.rptconsolidation.daos.BaseDao;
+import com.littlecloud.rptconsolidation.dtos.PreparedStatementParamListDto;
+import com.littlecloud.rptconsolidation.eos.ConsolidateJob;
+import com.littlecloud.rptconsolidation.helpers.DaoHelper;
+import com.littlecloud.utils.CalendarUtils;
+import com.littlecloud.utils.CommonUtils;
+
+public class ConsolidateJobsDaoImpl extends BaseDao{
+	private static final Logger log = LoggerFactory.getLogger(ConsolidateJobsDaoImpl.class);
+	private final String selectSql = "select * from consolidate_jobs ";
+	private final String updateSql = "update consolidate_jobs ";
+	public ConsolidateJobsDaoImpl(){
+		super();
+	}
+	public ConsolidateJobsDaoImpl(String mode){
+		super(mode);
+	}
+	public int updateConsolidateJobList(List<ConsolidateJob> consolidateJobList){
+		int noOfRecordsUpdated = 0; 
+		StringBuilder sqlSb = new StringBuilder(updateSql);
+		PreparedStatement preparedStmt = null;
+		try{
+			DaoHelper daoHelper = new DaoHelper();
+			PreparedStatementParamListDto preparedStatementParamListDto = new PreparedStatementParamListDto();
+			
+			sqlSb.append("set ");
+			sqlSb.append("created_date = ?, ");
+			sqlSb.append("updated_date = ?, ");
+			sqlSb.append("server = ?, ");
+			sqlSb.append("org_id = ?, ");
+			sqlSb.append("job_name = ?, ");
+			sqlSb.append("status = ?, ");
+			sqlSb.append("start_datetime = ?, ");
+			sqlSb.append("end_datetime = ?, ");
+			sqlSb.append("active = ? ");
+			sqlSb.append("where ");
+			sqlSb.append("id = ? ");
+			
+			for (ConsolidateJob consolidateJob: consolidateJobList){
+				int count = 0;
+				count ++;
+				preparedStatementParamListDto.putSequenceAndValue(count, CalendarUtils.convertSqlDate2SqlTimestamp(consolidateJob.getCreatedDate()));
+				count ++;
+				preparedStatementParamListDto.putSequenceAndValue(count, CalendarUtils.convertSqlDate2SqlTimestamp(consolidateJob.getUpdatedDate()));
+				count ++;
+				preparedStatementParamListDto.putSequenceAndValue(count, consolidateJob.getServer());
+				count ++;
+				preparedStatementParamListDto.putSequenceAndValue(count, consolidateJob.getOrgId());
+				count ++;
+				preparedStatementParamListDto.putSequenceAndValue(count, consolidateJob.getJobName());
+				count ++;
+				preparedStatementParamListDto.putSequenceAndValue(count, consolidateJob.getStatus());
+				count ++;
+				preparedStatementParamListDto.putSequenceAndValue(count, CalendarUtils.convertSqlDate2SqlTimestamp(consolidateJob.getStartDateTime()));
+				count ++;
+				preparedStatementParamListDto.putSequenceAndValue(count, CalendarUtils.convertSqlDate2SqlTimestamp(consolidateJob.getEndDateTime()));
+				count ++;
+				preparedStatementParamListDto.putSequenceAndValue(count, consolidateJob.getActive());
+				count ++;
+				preparedStatementParamListDto.putSequenceAndValue(count, consolidateJob.getId());
+				count ++;
+				daoHelper.addPreparedStatementParamListDto(preparedStatementParamListDto);
+			}
+			conn.setAutoCommit(false);
+			preparedStmt = daoHelper.getBatchUpdatePreparedStatement(conn, sqlSb.toString());
+			int [] numUpdates=preparedStmt.executeBatch();             
+			for (int i=0; i < numUpdates.length; i++) {            
+				if (numUpdates[i] == -2){
+					if (log.isDebugEnabled()){
+						log.debug("Execution " + i + ": unknown number of rows updated");
+					}
+				}
+				else{
+					if (log.isDebugEnabled()){
+						log.debug("Execution " + i + " successful: " + numUpdates[i] + " rows updated");
+					}
+					noOfRecordsUpdated = numUpdates[i];
+				}
+			}
+			conn.commit();
+			conn.setAutoCommit(true);
+		} catch (Exception e){
+			log.error("ConsolidateJobsDao.updateConsolidateJobList() - Exception: ", e);
+		}
+		return noOfRecordsUpdated;
+	}
+	public List<ConsolidateJob> getConsolidateJobList(ConsolidateJobCriteria criteria){
+		List<ConsolidateJob> results = new ArrayList<ConsolidateJob>();
+		StringBuilder sqlSb = new StringBuilder(selectSql);
+		PreparedStatement preparedStmt = null;
+		try{			
+			DaoHelper daoHelper = new DaoHelper();
+			PreparedStatementParamListDto preparedStatementParamListDto = new PreparedStatementParamListDto();
+			if (criteria != null){
+				int count = 0;
+
+				if (criteria.getId() != null && criteria.getId().intValue() > 0){
+					if (count == 0){
+						sqlSb.append("where ");
+					} else {
+						sqlSb.append(",");
+					}
+					sqlSb.append("id=? ");
+					Integer value = criteria.getId();
+					preparedStatementParamListDto.putSequenceAndValue(count, value);
+					count ++;
+				}
+				if (criteria.getJobName() != null && !criteria.getJobName().isEmpty()){
+					if (count == 0){
+						sqlSb.append("where ");
+					} else {
+						sqlSb.append(",");
+					}
+					sqlSb.append("job_name=? ");
+					String value = criteria.getJobName();
+					preparedStatementParamListDto.putSequenceAndValue(count, value);
+					count ++;
+				}
+				if (criteria.getServer() != null && !criteria.getServer().isEmpty()){
+					if (count == 0){
+						sqlSb.append("where ");
+					} else {
+						sqlSb.append(",");
+					}
+					sqlSb.append("server=? ");
+					String value = criteria.getServer();
+					preparedStatementParamListDto.putSequenceAndValue(count, value);
+					count ++;
+				}
+				if (criteria.getStatus() != null && !criteria.getStatus().isEmpty()){
+					if (count == 0){
+						sqlSb.append("where ");
+					} else {
+						sqlSb.append(",");
+					}
+					sqlSb.append("status=? ");
+					String value = criteria.getStatus();
+					preparedStatementParamListDto.putSequenceAndValue(count, value);
+					count ++;
+				}
+				if (criteria.getActive() != null){
+					if (count == 0){
+						sqlSb.append("where ");
+					} else {
+						sqlSb.append(",");
+					}
+					sqlSb.append("active=? ");
+					Boolean value = criteria.getActive();
+					preparedStatementParamListDto.putSequenceAndValue(count, value);
+					count ++;
+				}
+				if (criteria.getLimit() != null){
+
+					sqlSb.append("limit ? ");
+					Integer value = criteria.getLimit();
+					preparedStatementParamListDto.putSequenceAndValue(count, value);
+					count ++;
+				}
+			}
+			daoHelper.addPreparedStatementParamListDto(preparedStatementParamListDto);
+			preparedStmt = daoHelper.getSelectPreparedStatement(conn, sqlSb.toString());
+			
+			ResultSet rs = preparedStmt.executeQuery();
+			while (rs.next()){
+				ConsolidateJob rsObj = new ConsolidateJob();
+				rsObj.setId(CommonUtils.number2Integer((Number) rs.getObject("id")));
+				rsObj.setCreatedDate((Date) rs.getObject("created_date"));
+				rsObj.setUpdatedDate((Date) rs.getObject("updated_date"));
+				rsObj.setServer((String) rs.getObject("server"));
+				rsObj.setOrgId((String) rs.getObject("org_id"));
+				rsObj.setJobName((String) rs.getObject("job_name"));				
+				rsObj.setStatus((String) rs.getObject("status"));
+				rsObj.setStartDateTime((Date) rs.getObject("start_datetime"));
+				rsObj.setEndDateTime((Date) rs.getObject("end_datetime"));
+				rsObj.setActive((Boolean) rs.getObject("active"));
+				results.add(rsObj);
+			}	
+		} catch (Exception e){
+			if (e instanceof SQLException){
+				log.error("ConsolidateJobsDao.getConsolidateJobList() - SQLException: ", e);
+			} else {
+				log.error("ConsolidateJobsDao.getConsolidateJobList() - Exception: ", e);
+			}
+		} finally {
+			if (preparedStmt != null){
+				try {
+					preparedStmt.close();
+				} catch (SQLException e) {
+					log.error("ConsolidateJobsDao.getConsolidateJobList() close preparedStmt ... finally - Exception: ", e);
+				}
+				
+			}
+			// using jndi, no need to close
+//			if (conn != null){
+//				try {
+//					conn.close();
+//				} catch (SQLException e) {
+//					log.error("ConsolidateJobsDao.getConsolidateJobList() close connection ... finally - Exception: ", e);
+//				}
+//			}
+		}
+		return results;
+	}
+	
+	
+}

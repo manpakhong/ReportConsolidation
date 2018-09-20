@@ -1,0 +1,8 @@
+package com.littlecloud.rptconsolidation.services;
+
+import com.littlecloud.rptconsolidation.dtos.ConsolidateJobCommonParamsDto;
+
+public interface ConsolidateJobsChainMemberMgr {
+    void setNextChain(ConsolidateJobsChainMemberMgr nextChain);
+    void responseJobOrPass(ConsolidateJobCommonParamsDto consolidateJobcommonParamsDto);
+}

@@ -1,0 +1,54 @@
+package com.littlecloud.rptconsolidation.threads.consumers;
+
+import java.util.concurrent.BlockingQueue;
+
+import org.jboss.logging.Logger;
+
+import com.littlecloud.ac.messagehandler.queue.threads.CaptivePortalMessageConsumerThread;
+import com.littlecloud.rptconsolidation.eos.ConsolidateJob;
+
+public class ConsolidateJobsConsumerThread implements Runnable {
+	private static final Logger log = Logger.getLogger(CaptivePortalMessageConsumerThread.class);
+	private static BlockingQueue<ConsolidateJob> queue;
+
+	public ConsolidateJobsConsumerThread(BlockingQueue<ConsolidateJob> q) {
+		ConsolidateJobsConsumerThread.queue = q;
+	}
+	public void run() {
+		try {
+			if(log.isDebugEnabled()){
+				log.debugf("ConsolidateJobsConsumerThread.run(): before while, queue.size(): %s", ConsolidateJobsConsumerThread.queue.size());
+			}
+			while (ConsolidateJobsConsumerThread.queue.size() > 0) {
+				if(log.isDebugEnabled()){
+					log.debugf("ConsolidateJobsConsumerThread.run(): within while, queue.size(): %s", ConsolidateJobsConsumerThread.queue.size());
+				}
+				consume(ConsolidateJobsConsumerThread.queue.poll());
+				if(log.isDebugEnabled())
+					log.debug("ConsolidateJobsConsumerThread: processing msg");
+				try {
+					java.lang.Thread.sleep(1);
+				} catch(Exception e) {
+					log.error("ConsolidateJobsConsumerThread.run()", e);
+				}
+			}
+			if(log.isDebugEnabled()){
+				log.debugf("ConsolidateJobsConsumerThread.run(): exit while, queue.size(): %s", ConsolidateJobsConsumerThread.queue.size());
+			}
+		} catch (Exception e) {
+			log.error("ConsolidateJobsConsumerThread.run() - ", e);
+		}
+	}
+	
+
+	private void consume(ConsolidateJob consolidateJob) {
+		try{
+			if (consolidateJob != null ){
+	
+			}
+		} catch (Exception e){
+			log.error("ConsolidateJobsConsumerThread.consume() - ", e);
+		}
+	}
+		
+}

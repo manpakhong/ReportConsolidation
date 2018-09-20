@@ -1,0 +1,7 @@
+package com.littlecloud.rptconsolidation.factories;
+
+import java.util.Properties;
+
+public interface BundlesFactory <T>{
+	public T getBundleDto();
+}

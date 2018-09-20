@@ -1,0 +1,29 @@
+package com.littlecloud.rptconsolidation.services.impls;
+
+import com.littlecloud.rptconsolidation.dtos.ConsolidateJobCommonParamsDto;
+import com.littlecloud.rptconsolidation.services.ConsolidateJobsChainMemberMgr;
+
+public class CaptivePortalDailyUsagesChainMemberMgrImpl implements ConsolidateJobsChainMemberMgr {
+	private ConsolidateJobsChainMemberMgr consolidateJobsChainMgr;
+	@Override
+	public void setNextChain(ConsolidateJobsChainMemberMgr nextChain) {
+		this.consolidateJobsChainMgr=nextChain;
+	}
+
+	@Override
+	public void responseJobOrPass(ConsolidateJobCommonParamsDto consolidateJobcommonParamsDto) {
+		// TODO Auto-generated method stub
+
+	}
+
+	private boolean areParamsValid(ConsolidateJobCommonParamsDto consolidateJobCommonParamsDto){
+		boolean areValid = true;
+		if (consolidateJobCommonParamsDto.getDateFrom() == null || consolidateJobCommonParamsDto.getDateFrom().isEmpty() ||
+				consolidateJobCommonParamsDto.getDateTo() == null || consolidateJobCommonParamsDto.getDateTo().isEmpty() ||
+				consolidateJobCommonParamsDto.getJobName() == null || consolidateJobCommonParamsDto.getJobName().isEmpty() ||
+				consolidateJobCommonParamsDto.getOrgId() == null || consolidateJobCommonParamsDto.getOrgId().isEmpty()){
+			areValid = false;
+		}
+		return areValid;
+	}
+}

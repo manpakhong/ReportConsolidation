@@ -1,0 +1,19 @@
+package com.littlecloud.rptconsolidation.services.impls;
+
+import static org.junit.Assert.*;
+
+import org.junit.Test;
+
+public class ConsolidateJobsMgrUnitTest {
+
+	@Test
+	public void testConsolidateJobsMgrImpl() {
+		//fail("Not yet implemented");
+	}
+
+	@Test
+	public void testGetAllConsolidateJobList() {
+		//fail("Not yet implemented");
+	}
+
+}
